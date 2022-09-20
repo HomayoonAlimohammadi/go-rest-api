@@ -24,7 +24,7 @@ func prepareToken(user *interfaces.User) string {
 	return token
 }
 
-func prepareResponse(user *interfaces.User, accounts []interfaces.ResponseAccount) map[string]interface{} {
+func prepareResponse(user *interfaces.User, accounts []interfaces.ResponseAccount, withToken bool) map[string]interface{} {
 
 	// Setup response
 	responseUser := &interfaces.ResponseUser{
@@ -36,7 +36,9 @@ func prepareResponse(user *interfaces.User, accounts []interfaces.ResponseAccoun
 
 	var response = map[string]interface{}{"message": "All is fine"}
 	var token = prepareToken(user)
-	response["jwt"] = token
+	if withToken {
+		response["jwt"] = token
+	}
 	response["data"] = responseUser
 
 	return response
@@ -75,7 +77,7 @@ func Login(username string, password string) map[string]interface{} {
 	accounts := []interfaces.ResponseAccount{}
 	db.Table("accounts").Select("id, name, balance").Where("user_id = ?", user.ID).Scan(&accounts)
 
-	var response = prepareResponse(user, accounts)
+	var response = prepareResponse(user, accounts, true)
 
 	return response
 }
@@ -105,7 +107,29 @@ func Register(username string, email string, password string) map[string]interfa
 	accounts := []interfaces.ResponseAccount{}
 	responseAccount := interfaces.ResponseAccount{ID: account.ID, Name: account.Name, Balance: uint(account.Balance)}
 	accounts = append(accounts, responseAccount)
-	var response = prepareResponse(user, accounts)
+	var response = prepareResponse(user, accounts, true)
 
+	return response
+}
+
+func GetUser(id string, jwt string) map[string]interface{} {
+	isValid := helpers.ValidateToken(id, jwt)
+	if !isValid {
+		return map[string]interface{}{"message": "Invalid values"}
+	}
+
+	db := helpers.ConnectDB()
+	defer db.Close()
+
+	// Get user from DB
+	user := &interfaces.User{}
+	if db.Where("id = ?", id).First(&user).RecordNotFound() {
+		return map[string]interface{}{"message": "User not found"}
+	}
+
+	accounts := []interfaces.ResponseAccount{}
+	db.Table("accounts").Select("id, name, balance").Where("user_id = ?", user.ID).Scan(&accounts)
+
+	var response = prepareResponse(user, accounts, false)
 	return response
 }

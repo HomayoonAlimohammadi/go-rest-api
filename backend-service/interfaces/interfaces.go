@@ -34,3 +34,18 @@ type Validation struct {
 	Value string
 	Valid string
 }
+
+type ErrResponse struct {
+	Message string
+}
+
+type Login struct {
+	Username string
+	Password string
+}
+
+type Register struct {
+	Username string
+	Email    string
+	Password string
+}

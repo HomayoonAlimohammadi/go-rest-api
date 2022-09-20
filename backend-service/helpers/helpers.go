@@ -2,9 +2,15 @@ package helpers
 
 import (
 	"backend/interfaces"
+	"encoding/json"
+	"log"
+	"net/http"
 	"os"
 	"regexp"
+	"strconv"
+	"strings"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/jinzhu/gorm"
 	"github.com/joho/godotenv"
 	"golang.org/x/crypto/bcrypt"
@@ -53,4 +59,35 @@ func Validation(values []interfaces.Validation) bool {
 		}
 	}
 	return true
+}
+
+func PanicHandler(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer func() {
+			err := recover()
+			if err != nil {
+				log.Println(err)
+				resp := interfaces.ErrResponse{Message: "Internal server error"}
+				json.NewEncoder(w).Encode(resp)
+			}
+		}()
+		next.ServeHTTP(w, r)
+	})
+}
+
+func ValidateToken(id string, jwtToken string) bool {
+	cleanJWT := strings.Replace(jwtToken, "Bearer ", "", -1)
+	tokenData := jwt.MapClaims{}
+	godotenv.Load("./users/.env")
+	token, err := jwt.ParseWithClaims(cleanJWT, tokenData, func(token *jwt.Token) (interface{}, error) {
+		return []byte(os.Getenv("JWT_PASSWORD")), nil
+
+	})
+	HandleError(err)
+	var userID, _ = strconv.ParseFloat(id, 8)
+	if token.Valid && tokenData["user_id"] == userID {
+		return true
+	} else {
+		return false
+	}
 }
