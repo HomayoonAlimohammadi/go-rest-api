@@ -49,3 +49,10 @@ type Register struct {
 	Email    string
 	Password string
 }
+
+type Transaction struct {
+	gorm.Model
+	From   uint
+	To     uint
+	Amount int
+}

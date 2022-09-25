@@ -31,5 +31,6 @@ func Migrate() {
 	defer db.Close()
 	db.Exec("DROP TABLE IF EXISTS users")
 	db.Exec("DROP TABLE IF EXISTS accounts")
-	db.AutoMigrate(&interfaces.User{}, &interfaces.Account{})
+	db.Exec("DROP TABLE IF EXISTS transactions")
+	db.AutoMigrate(&interfaces.User{}, &interfaces.Account{}, &interfaces.Transaction{})
 }

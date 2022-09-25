@@ -3,6 +3,7 @@ package api
 import (
 	"backend/helpers"
 	"backend/interfaces"
+	"backend/useraccounts"
 	"backend/users"
 	"encoding/json"
 	"fmt"
@@ -12,6 +13,13 @@ import (
 
 	"github.com/gorilla/mux"
 )
+
+type TransactionBody struct {
+	UserID uint
+	From   uint
+	To     uint
+	Amount int
+}
 
 func readBody(r *http.Request) []byte {
 	body, err := ioutil.ReadAll(r.Body)
@@ -26,7 +34,7 @@ func apiResponse(call map[string]interface{}, w http.ResponseWriter) {
 		json.NewEncoder(w).Encode(resp)
 	} else {
 		// Handle Error
-		resp := interfaces.ErrResponse{Message: "Wrong Username or Password"}
+		resp := call
 		json.NewEncoder(w).Encode(resp)
 	}
 }
@@ -64,6 +72,19 @@ func StartApp() {
 	router.HandleFunc("/login", login).Methods("POST")
 	router.HandleFunc("/register", register).Methods("POST")
 	router.HandleFunc("/users/{id}", getUser).Methods("GET")
+	router.HandleFunc("/transaction", transaction).Methods("POST")
 	fmt.Println("App is listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
+}
+
+func transaction(w http.ResponseWriter, r *http.Request) {
+	body := readBody(r)
+	auth := r.Header.Get("Authorization")
+
+	var formattedBody TransactionBody
+	err := json.Unmarshal(body, &formattedBody)
+	helpers.HandleError(err)
+	transaction := useraccounts.Transaction(formattedBody.UserID, formattedBody.From, formattedBody.To, formattedBody.Amount, auth)
+	apiResponse(transaction, w)
+
 }
