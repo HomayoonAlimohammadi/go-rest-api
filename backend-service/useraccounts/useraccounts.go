@@ -1,14 +1,14 @@
 package useraccounts
 
 import (
+	"backend/database"
 	"backend/helpers"
 	"backend/interfaces"
 	"strconv"
 )
 
 func updateAccount(id uint, amount int) interfaces.ResponseAccount {
-	db := helpers.ConnectDB()
-	defer db.Close()
+	db := database.DB
 	account := interfaces.Account{}
 	responseAccount := interfaces.ResponseAccount{}
 
@@ -25,8 +25,7 @@ func updateAccount(id uint, amount int) interfaces.ResponseAccount {
 }
 
 func getAccount(id uint) *interfaces.Account {
-	db := helpers.ConnectDB()
-	defer db.Close()
+	db := database.DB
 	account := &interfaces.Account{}
 	if db.Where("id = ?", id).First(&account).RecordNotFound() {
 		return nil

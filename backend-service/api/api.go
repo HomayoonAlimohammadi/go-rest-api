@@ -3,6 +3,7 @@ package api
 import (
 	"backend/helpers"
 	"backend/interfaces"
+	"backend/transactions"
 	"backend/useraccounts"
 	"backend/users"
 	"encoding/json"
@@ -66,6 +67,15 @@ func getUser(w http.ResponseWriter, r *http.Request) {
 	apiResponse(user, w)
 }
 
+func getMyTransactions(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	userID := vars["userID"]
+	jwt := r.Header.Get("Authorization")
+	transactions := transactions.GetMyTransactions(userID, jwt)
+
+	apiResponse(transactions, w)
+}
+
 func StartApp() {
 	router := mux.NewRouter()
 	router.Use(helpers.PanicHandler)
@@ -73,6 +83,7 @@ func StartApp() {
 	router.HandleFunc("/register", register).Methods("POST")
 	router.HandleFunc("/users/{id}", getUser).Methods("GET")
 	router.HandleFunc("/transaction", transaction).Methods("POST")
+	router.HandleFunc("/transaction/{userID}", getMyTransactions).Methods("GET")
 	fmt.Println("App is listening on port 8080")
 	log.Fatal(http.ListenAndServe(":8080", router))
 }

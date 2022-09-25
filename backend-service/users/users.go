@@ -1,6 +1,7 @@
 package users
 
 import (
+	"backend/database"
 	"backend/helpers"
 	"backend/interfaces"
 	"os"
@@ -58,8 +59,7 @@ func Login(username string, password string) map[string]interface{} {
 	}
 
 	// Connect to DataBase
-	db := helpers.ConnectDB()
-	defer db.Close()
+	db := database.DB
 
 	// Get user from DB
 	user := &interfaces.User{}
@@ -94,8 +94,7 @@ func Register(username string, email string, password string) map[string]interfa
 		return map[string]interface{}{"message": "Invalid values"}
 	}
 
-	db := helpers.ConnectDB()
-	defer db.Close()
+	db := database.DB
 
 	generatedPassword := helpers.HashAndSalt([]byte(password))
 	user := &interfaces.User{Username: username, Email: email, Password: generatedPassword}
@@ -118,8 +117,7 @@ func GetUser(id string, jwt string) map[string]interface{} {
 		return map[string]interface{}{"message": "Invalid values"}
 	}
 
-	db := helpers.ConnectDB()
-	defer db.Close()
+	db := database.DB
 
 	// Get user from DB
 	user := &interfaces.User{}

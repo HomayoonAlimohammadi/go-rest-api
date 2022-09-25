@@ -1,6 +1,7 @@
 package migrations
 
 import (
+	"backend/database"
 	"backend/helpers"
 
 	"backend/interfaces"
@@ -9,8 +10,7 @@ import (
 )
 
 func CreateDefaultAccounts() {
-	db := helpers.ConnectDB()
-	defer db.Close()
+	db := database.DB
 	users := [2]interfaces.User{
 		{Username: "Homayoon", Email: "homayoon.alimohammadi@divar.ir"},
 		{Username: "Nooshin", Email: "nooshin.rajabi@sharif.edu"},
@@ -27,8 +27,7 @@ func CreateDefaultAccounts() {
 }
 
 func Migrate() {
-	db := helpers.ConnectDB()
-	defer db.Close()
+	db := database.DB
 	db.Exec("DROP TABLE IF EXISTS users")
 	db.Exec("DROP TABLE IF EXISTS accounts")
 	db.Exec("DROP TABLE IF EXISTS transactions")
